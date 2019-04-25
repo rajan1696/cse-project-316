@@ -133,4 +133,51 @@ int main()
 			exit(1);
 		}
 	}
+	
+	int total_passengers_boarded = 0;
+	int max_free_seats_per_train;
+	printf("Enter available free seats in the train: ");
+	scanf("%d",&max_free_seats_per_train);
+	int pass = 0;
+	while (passengers_left > 0) {
+		int free_seats = max_free_seats_per_train;
+		
+		printf("Train entering station with %d free seats\n", free_seats);
+		load_train_returned = 0;
+		struct load_train_args args = { &station, free_seats };
+		pthread_t b;
+		int cr = pthread_create(&b, NULL, train_thread, &args);
+		if (cr != 0) {
+			perror("pthread_create");
+			exit(1);
+		}
+
+		int threads_to_take = MIN(passengers_left, free_seats);
+		int threads_taken = 0;
+		while (threads_taken< threads_to_take) {
+			if (load_train_returned) {
+				printf("Error: station_load_train returned early!\n");
+			
+				exit(1);
+			}
+			if (threads_completed > 0) {
+				if ((pass% 2) == 0)
+					usleep(2);
+				threads_taken++;
+				station_on_board(&station);
+				__sync_sub_and_fetch(&threads_completed, 1);
+			}
+		}
+		
+		for (i = 0; i < 1000; i++) {
+			if (i > 100 && load_train_returned)
+				break;
+			usleep(1000);
+		}
+
+		if (!load_train_returned) {
+			printf("Error: station_load_train failed to return\n");
+			exit(1);
+		}
+
 
