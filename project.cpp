@@ -180,4 +180,32 @@ int main()
 			exit(1);
 		}
 
+	while (threads_completed > 0) {
+			threads_taken++;
+			__sync_sub_and_fetch(&threads_completed, 1);
+		}
 
+		passengers_left -= threads_taken;
+		total_passengers_boarded += threads_taken;
+		printf("Train is going to depart from station with %d new passenger(s)\n",
+			threads_to_take, threads_taken,
+			(threads_to_take != threads_taken) ? " *****" : "");
+
+		if (threads_to_take!= threads_taken) {
+			printf("Error: Too many passengers on this train!\n");
+			exit(1);
+		}
+
+		pass++;
+	}
+
+	if (total_passengers_boarded == total_passengers) {
+		printf("Passengers seated in seats and train is ready to leave\n");
+		
+		
+		return 0;
+	} else {
+		printf("Error: expected %d total boarded passengers, but got %d!\n");
+		return 1;
+	}
+}
